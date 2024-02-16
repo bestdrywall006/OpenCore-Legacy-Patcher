@@ -43,7 +43,7 @@ class SysPatchStartFrame(wx.Frame):
 
         super(SysPatchStartFrame, self).__init__(parent, title=title, size=(350, 200), style=wx.DEFAULT_FRAME_STYLE & ~(wx.RESIZE_BORDER | wx.MAXIMIZE_BOX))
         gui_support.GenerateMenubar(self, self.constants).generate()
-        self.Centre()
+        gui_support.Centre(self, self.constants)
 
         if self.patches == {}:
             self.patches = sys_patch_detect.DetectRootPatch(self.constants.computer.real_model, self.constants).detect_patch_set()
@@ -152,7 +152,7 @@ class SysPatchStartFrame(wx.Frame):
 
         if variant == "Root Patching":
             # Label
-            label = wx.StaticText(dialog, label="Root Patching will patch the following:", pos=(-1, title.GetPosition()[1] + 30))
+            label = wx.StaticText(dialog, label="The following patches will be installed:", pos=(-1, title.GetPosition()[1] + 30))
             label.SetFont(gui_support.font_factory(13, wx.FONTWEIGHT_NORMAL))
             label.Centre(wx.HORIZONTAL)
 
@@ -244,6 +244,16 @@ class SysPatchStartFrame(wx.Frame):
             logging.error("An internal error occurred while running the Root Patcher:\n")
             logging.error(traceback.format_exc())
         logger.removeHandler(logger.handlers[2])
+
+        if not self.constants.root_patcher_succeeded:
+            errordialog = wx.MessageDialog(self.frame_modal, "An error occurred while patching your system.\n\nPlease check the log for more details.\n\Reboot your system and try again. If this error persists, check the Support menu for further assistance.", "Error", wx.YES_NO | wx.ICON_ERROR)
+            errordialog.SetYesNoLabels("Copy Log to Clipboard", "OK")
+
+            if errordialog.ShowModal() == wx.ID_YES:
+                log = self.text_box.GetValue()
+                wx.TheClipboard.Open()
+                wx.TheClipboard.SetData(wx.TextDataObject(log))
+                wx.TheClipboard.Close()
 
 
     def revert_root_patching(self):
